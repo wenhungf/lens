@@ -1621,6 +1621,37 @@ Array.prototype.forEach.call(document.querySelectorAll("[data-art]"),function(i)
   const RM = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
   const wait = ms => new Promise(r => setTimeout(r, RM ? Math.min(ms, 40) : ms));
   const frame = () => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+  // ----- card sounds, made in the browser (no audio files): a soft swish for each card dealt, a quick riffle for the shuffle.
+  // The audio starts on the reader's own tap; if the browser refuses, the table simply stays silent.
+  let AC = null;
+  function audio() {
+    try {
+      if (!AC) { const C = window.AudioContext || window.webkitAudioContext; if (!C) return null; AC = new C(); }
+      if (AC.state === 'suspended') AC.resume();
+      return AC;
+    } catch (e) { return null; }
+  }
+  function burst(a, t, type, freq, q, vol, attack, decay) {
+    const n = Math.ceil(a.sampleRate * (attack + decay * 4)), buf = a.createBuffer(1, n, a.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
+    const src = a.createBufferSource(), f = a.createBiquadFilter(), hp = a.createBiquadFilter(), g = a.createGain();
+    src.buffer = buf; f.type = type; f.frequency.value = freq; f.Q.value = q; hp.type = 'highpass'; hp.frequency.value = 220;
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol, t + attack); g.gain.exponentialRampToValueAtTime(0.0001, t + attack + decay * 4);
+    src.connect(f); f.connect(hp); hp.connect(g); g.connect(a.destination); src.start(t); src.stop(t + attack + decay * 4 + 0.02);
+  }
+  const SFX = {
+    // low-passed noise that swells for 25 ms and dies away: the same soft swish as the page-7 video
+    deal() { const a = audio(); if (a) try { burst(a, a.currentTime, 'lowpass', 1600, 0.5, 0.36, 0.025, 0.11); } catch (e) {} },
+    // sixteen small ticks that speed up, over a breath of air: two halves of a deck riffling together
+    shuffle() {
+      const a = audio(); if (!a) return;
+      try {
+        let t = a.currentTime;
+        burst(a, t, 'lowpass', 900, 0.5, 0.09, 0.05, 0.07);
+        for (let i = 0; i < 16; i++) { burst(a, t, 'bandpass', 2400 + Math.random() * 900, 1.4, 0.1 + Math.random() * 0.08, 0.002, 0.012); t += 0.017 - i * 0.0006; }
+      } catch (e) {}
+    },
+  };
   const zhOn = () => document.documentElement.classList.contains('zh-on');
   const lang = () => (zhOn() ? 'zh' : 'en');
   const STACK = 6, KEY = 'kb-oracle-readings', KEEP_MAX = 30;
@@ -1741,6 +1772,7 @@ Array.prototype.forEach.call(document.querySelectorAll("[data-art]"),function(i)
       if (S.phase === 'busy') return;
       clearTimeout(S.timer);
       S.cards.forEach(c => c.el.remove()); S.cards = []; faces.length = 0; full.hidden = true; full.innerHTML = '';
+      audio();   // on the reader's tap, before the first wait, so browsers allow the sounds
       S.phase = 'ask'; relayout(); await frame();
       S.phase = 'busy'; panel.onclick = null; panel.innerHTML = ''; panel.append(el('div', 'kb-busy', bi(STR.busy)));
       const t = test || {};
@@ -1751,6 +1783,7 @@ Array.prototype.forEach.call(document.querySelectorAll("[data-art]"),function(i)
       for (let round = 0; round < 3; round++) { // riffle: the stack splits left and right, then closes
         S.stack.forEach((c, i) => put(c, g, stackPos(g, i, (i % 2 ? 1 : -1) * g.cw * 0.5, (i % 2 ? 7 : -7))));
         await wait(210);
+        SFX.shuffle();
         S.stack.forEach((c, i) => { c.el.style.zIndex = 1 + ((i + round * 2 + 1) % STACK); put(c, g, stackPos(g, i)); });
         await wait(230);
       }
@@ -1761,7 +1794,7 @@ Array.prototype.forEach.call(document.querySelectorAll("[data-art]"),function(i)
       }
       S.cards.forEach(c => put(c, g, stackPos(g, STACK)));
       await frame();
-      for (const c of S.cards) { c.dealt = true; put(c, g, slotPos(g, c.slot)); await wait(300); }
+      for (const c of S.cards) { c.dealt = true; put(c, g, slotPos(g, c.slot)); SFX.deal(); await wait(300); }
       await arts; await wait(250);
       for (const c of S.cards) {
         const f = await faceCanvas(c.n, 'kb-face'); c.flip.append(f);
