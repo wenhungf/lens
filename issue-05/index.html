@@ -101,6 +101,9 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .page.on .pop{animation:popin .7s cubic-bezier(.2,1.3,.4,1) both;animation-delay:var(--d,0s)}
 @keyframes popin{from{opacity:0;transform:translate(var(--tx,0),0) scale(.7)}to{opacity:1}}
 .page.on .tag.pop{animation-name:tagin}
+/* a small pointer from the tag to the thing it labels */
+.tag.ptr-up::after,.tag.ptr-down::after{content:"";position:absolute;left:var(--pl,50%);width:10px;height:10px;margin-left:-5px;background:var(--card);rotate:45deg}
+.tag.ptr-up::after{top:-4px} .tag.ptr-down::after{bottom:-4px}
 @keyframes tagin{from{opacity:0;transform:translate(var(--tx,-50%),10px)}to{opacity:1;transform:translate(var(--tx,-50%),0)}}
 .float{animation:float 5s ease-in-out infinite}
 .page.on .pop.float{animation:popin .7s cubic-bezier(.2,1.3,.4,1) both,float 5s ease-in-out .8s infinite;animation-delay:var(--d,0s),calc(var(--d,0s) + .8s)}
@@ -301,8 +304,8 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
   .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
   .scene{aspect-ratio:var(--mar,var(--ar,16/9));border-radius:18px}
   .ly{left:var(--mx,var(--x));top:var(--my,var(--y));width:var(--mw,var(--w))}
-  .tag{left:var(--mx,var(--x));top:var(--my,var(--y))}
-  .tag .zi{display:block;margin:2px 0 0}  /* on a phone the Chinese sits under the English, so tags stay narrow */
+  .tag{left:var(--mx,var(--x));top:var(--my,var(--y));--tx:var(--mtx,-50%);--pl:var(--mpl,50%);font-size:9px;padding:4px 9px;letter-spacing:.1em}
+  .tag.stack .zi{display:block;margin:1px 0 0}  /* a narrow tag that stays over Grandma's side */
   .copy p{font-size:17px}
   .tl{grid-template-columns:minmax(0,1fr);gap:10px}
   .tl::before{left:26px;right:auto;top:0;bottom:0;width:2px;height:auto}
@@ -620,8 +623,8 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
       <img class="ly pop" data-art="bowl_congee" alt="A bowl of congee arrives in front of Grandpa" style="--x:23.75%;--y:76.00%;--w:12.50%;--mx:17.19%;--my:76.00%;--mw:15.62%;--d:1.6s">
       <img class="ly pop" data-art="dish_saltegg" alt="A dish of salted egg halves" style="--x:47.50%;--y:78.00%;--w:12.00%;--mx:46.88%;--my:78.00%;--mw:15.00%;--d:1.9s">
       <img class="ly pop" data-art="dish_pickles" alt="A dish of pickled cucumber" style="--x:75.00%;--y:78.00%;--w:12.00%;--mx:81.25%;--my:78.00%;--mw:15.00%;--d:2.1s">
-      <span class="tag pop" style="--x:14.75%;--y:90.00%;--mx:15%;--my:78%;--d:1.3s">Too hard<span class="zi" hidden>咬不動</span></span>
-      <span class="tag pop" style="--x:72.75%;--y:10.00%;--mx:54%;--my:2%;--d:2.3s">Congee, every meal<span class="zi" hidden>餐餐稀飯</span></span>
+      <span class="tag pop ptr-up" style="--x:14.75%;--y:89%;--mx:1%;--my:88%;--mtx:0%;--mpl:22px;--d:1.3s">Too hard<span class="zi" hidden>咬不動</span></span>
+      <span class="tag pop ptr-down stack" style="--x:72.75%;--y:9%;--mx:98%;--my:1%;--mtx:-100%;--mpl:60%;--d:2.3s">Congee, every meal<span class="zi" hidden>餐餐稀飯</span></span>
     </div>
 
     <div class="bignum">
@@ -691,7 +694,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
     <p class="dek">Dentists use twenty as the line. Japan has been chasing it since 1989.<span class="zh" hidden>牙醫把二十顆當成一條分界。日本從 1989 年就開始追這個數字。</span></p>
 
     <div class="kicker">Japan: 80-year-olds with 20 or more natural teeth<span class="zi" hidden>日本：保有 20 顆以上自然牙的 80 歲長者</span></div>
-    <figure class="line8020" id="line8020" role="img" aria-label="Japan, share of 80-year-olds with 20 or more natural teeth: about 7% in 1989, 40.2% in 2011, 51.2% in 2016, 51.6% in 2022, 61.5% in 2024"></figure>
+    <figure class="line8020" id="line8020" role="img" aria-label="Japan, share of 80-year-olds with 20 or more natural teeth: about 7% in 1989, 40.2% in 2011, 51.2% in 2016, 61.5% in 2024"></figure>
     <p class="cap">Percent of people aged 80. 1989 is an estimate from the start of the 8020 campaign; later years are estimated from ages 75–84. Source: Ministry of Health, Labour and Welfare, Survey of Dental Diseases.<span class="zh" hidden>80 歲長者的百分比。1989 年是 8020 運動剛開始時的估計值；之後各年由 75–84 歲推估。資料來源：日本厚生勞動省「齒科疾病實態調查」。</span></p>
 
     <div class="kicker">Taiwan, 2023: natural teeth, on average<span class="zi" hidden>台灣 2023 年：平均自然牙顆數</span></div>
@@ -953,18 +956,17 @@ function Z(zh,inline){ return '<span class="'+(inline?'zi':'zh')+'"'+(zhOn()?'':
 /* ---------- page 3: Japan's 8020 line, Taiwan's teeth ---------- */
 function init8020(){
   var el=document.getElementById('line8020'); if(!el) return;
-  var P=[[1989,7,'about 7%'],[2011,40.2,'40.2%'],[2016,51.2,'51.2%'],[2022,51.6,'51.6%'],[2024,61.5,'61.5%']];
+  var P=[[1989,7,'about 7%'],[2011,40.2,'40.2%'],[2016,51.2,'51.2%'],[2024,61.5,'61.5%']];
   var W=640,H=270,L=44,R=24,T=20,B=44, X=function(y){ return L+(y-1989)/(2024-1989)*(W-L-R); }, Y=function(v){ return T+(1-v/100)*(H-T-B); };
   var d=P.map(function(p,i){ return (i?'L':'M')+X(p[0]).toFixed(1)+' '+Y(p[1]).toFixed(1); }).join(' ');
   var g='';
   [0,25,50,75,100].forEach(function(v){ g+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+Y(v)+'" y2="'+Y(v)+'" class="gl"/><text x="'+(L-8)+'" y="'+(Y(v)+4)+'" class="ax" text-anchor="end">'+v+'%</text>'; });
   g+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+Y(50)+'" y2="'+Y(50)+'" class="half"/><text x="'+(L+6)+'" y="'+(Y(50)-6)+'" class="ax">half</text>';
-  var pts=P.map(function(p,i){
-    /* 2022 and 2024 sit too close for two year labels on a phone, so 2022's year goes in its value label instead */
-    var up=i===3, ta=i===0?'start':'end', dx=i===1||i===2?-10:i===3?14:0, dy=up?36:i===0?-26:i===1?-20:-12;
-    var val=i===3?p[2]+' (2022)':p[2];
-    return '<g class="pt" style="--k:'+i+'"><circle cx="'+X(p[0])+'" cy="'+Y(p[1])+'" r="'+(i===4?7:5)+'" class="'+(i===4?'hl':'')+'"/><text x="'+(X(p[0])+dx)+'" y="'+(Y(p[1])+dy)+'" class="v'+(i===4?' hl':'')+'" text-anchor="'+ta+'">'+val+'</text>'+
-      (i===3?'':'<text x="'+X(p[0])+'" y="'+(H-12)+'" class="ax" text-anchor="'+(i===0?'start':i===4?'end':'middle')+'">'+p[0]+'</text>')+'</g>'; }).join('');
+  var last=P.length-1, pts=P.map(function(p,i){
+    /* each label sits off the line beside its own dot: 1989 above, 2011 below and to the right (clear of the dashed half line), 2016 up and to the left, 2024 ending at the dot */
+    var ta=i<=1?'start':'end', dx=i===1?10:i===0||i===last?0:-10, dy=i===0?-26:i===1?28:i===last?-14:-16;
+    return '<g class="pt" style="--k:'+i+'"><circle cx="'+X(p[0])+'" cy="'+Y(p[1])+'" r="'+(i===last?7:5)+'" class="'+(i===last?'hl':'')+'"/><text x="'+(X(p[0])+dx)+'" y="'+(Y(p[1])+dy)+'" class="v'+(i===last?' hl':'')+'" text-anchor="'+ta+'">'+p[2]+'</text>'+
+      '<text x="'+X(p[0])+'" y="'+(H-12)+'" class="ax" text-anchor="'+(i===0?'start':i===last?'end':'middle')+'">'+p[0]+'</text></g>'; }).join('');
   el.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" aria-hidden="true">'+g+'<path class="ln" pathLength="1" d="'+d+'"/>'+pts+'</svg>';
 }
 var TOOTH='<svg viewBox="0 0 20 26" aria-hidden="true"><path d="M3 3 C6 0 8 2 10 2 C12 2 14 0 17 3 C19 6 18 10 17 13 C16 17 16 23 14 24 C12 25 12 18 10 18 C8 18 8 25 6 24 C4 23 4 17 3 13 C2 10 1 6 3 3 Z"/></svg>';
