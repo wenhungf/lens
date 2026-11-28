@@ -302,6 +302,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
   .scene{aspect-ratio:var(--mar,var(--ar,16/9));border-radius:18px}
   .ly{left:var(--mx,var(--x));top:var(--my,var(--y));width:var(--mw,var(--w))}
   .tag{left:var(--mx,var(--x));top:var(--my,var(--y))}
+  .tag .zi{display:block;margin:2px 0 0}  /* on a phone the Chinese sits under the English, so tags stay narrow */
   .copy p{font-size:17px}
   .tl{grid-template-columns:minmax(0,1fr);gap:10px}
   .tl::before{left:26px;right:auto;top:0;bottom:0;width:2px;height:auto}
@@ -619,8 +620,8 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
       <img class="ly pop" data-art="bowl_congee" alt="A bowl of congee arrives in front of Grandpa" style="--x:23.75%;--y:76.00%;--w:12.50%;--mx:17.19%;--my:76.00%;--mw:15.62%;--d:1.6s">
       <img class="ly pop" data-art="dish_saltegg" alt="A dish of salted egg halves" style="--x:47.50%;--y:78.00%;--w:12.00%;--mx:46.88%;--my:78.00%;--mw:15.00%;--d:1.9s">
       <img class="ly pop" data-art="dish_pickles" alt="A dish of pickled cucumber" style="--x:75.00%;--y:78.00%;--w:12.00%;--mx:81.25%;--my:78.00%;--mw:15.00%;--d:2.1s">
-      <span class="tag pop" style="--x:14.75%;--y:90.00%;--mx:15%;--my:90.00%;--d:1.3s">Too hard<span class="zi" hidden>咬不動</span></span>
-      <span class="tag pop" style="--x:72.75%;--y:10.00%;--mx:78.44%;--my:10.00%;--d:2.3s">Congee, every meal<span class="zi" hidden>餐餐稀飯</span></span>
+      <span class="tag pop" style="--x:14.75%;--y:90.00%;--mx:15%;--my:78%;--d:1.3s">Too hard<span class="zi" hidden>咬不動</span></span>
+      <span class="tag pop" style="--x:72.75%;--y:10.00%;--mx:54%;--my:2%;--d:2.3s">Congee, every meal<span class="zi" hidden>餐餐稀飯</span></span>
     </div>
 
     <div class="bignum">
@@ -958,7 +959,12 @@ function init8020(){
   var g='';
   [0,25,50,75,100].forEach(function(v){ g+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+Y(v)+'" y2="'+Y(v)+'" class="gl"/><text x="'+(L-8)+'" y="'+(Y(v)+4)+'" class="ax" text-anchor="end">'+v+'%</text>'; });
   g+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+Y(50)+'" y2="'+Y(50)+'" class="half"/><text x="'+(L+6)+'" y="'+(Y(50)-6)+'" class="ax">half</text>';
-  var pts=P.map(function(p,i){ var up=i===1||i===3, ta=i===0?'start':i===4||i===2?'end':'middle', dx=i===2?-8:0; return '<g class="pt" style="--k:'+i+'"><circle cx="'+X(p[0])+'" cy="'+Y(p[1])+'" r="'+(i===4?7:5)+'" class="'+(i===4?'hl':'')+'"/><text x="'+(X(p[0])+dx)+'" y="'+(Y(p[1])+(up?20:-12))+'" class="v'+(i===4?' hl':'')+'" text-anchor="'+ta+'">'+p[2]+'</text><text x="'+X(p[0])+'" y="'+(H-12+(i===3?14:0))+'" class="ax" text-anchor="'+(i===0?'start':i===4?'end':'middle')+'">'+p[0]+'</text></g>'; }).join('');
+  var pts=P.map(function(p,i){
+    /* 2022 and 2024 sit too close for two year labels on a phone, so 2022's year goes in its value label instead */
+    var up=i===3, ta=i===0?'start':'end', dx=i===1||i===2?-10:i===3?14:0, dy=up?36:i===0?-26:i===1?-20:-12;
+    var val=i===3?p[2]+' (2022)':p[2];
+    return '<g class="pt" style="--k:'+i+'"><circle cx="'+X(p[0])+'" cy="'+Y(p[1])+'" r="'+(i===4?7:5)+'" class="'+(i===4?'hl':'')+'"/><text x="'+(X(p[0])+dx)+'" y="'+(Y(p[1])+dy)+'" class="v'+(i===4?' hl':'')+'" text-anchor="'+ta+'">'+val+'</text>'+
+      (i===3?'':'<text x="'+X(p[0])+'" y="'+(H-12)+'" class="ax" text-anchor="'+(i===0?'start':i===4?'end':'middle')+'">'+p[0]+'</text>')+'</g>'; }).join('');
   el.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" aria-hidden="true">'+g+'<path class="ln" pathLength="1" d="'+d+'"/>'+pts+'</svg>';
 }
 var TOOTH='<svg viewBox="0 0 20 26" aria-hidden="true"><path d="M3 3 C6 0 8 2 10 2 C12 2 14 0 17 3 C19 6 18 10 17 13 C16 17 16 23 14 24 C12 25 12 18 10 18 C8 18 8 25 6 24 C4 23 4 17 3 13 C2 10 1 6 3 3 Z"/></svg>';
