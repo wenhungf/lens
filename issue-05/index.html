@@ -385,6 +385,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .line8020{margin:0 0 6px;background:var(--card);border-radius:20px;border:1px solid var(--rule);padding:10px 12px}
 .line8020 svg{display:block;width:100%;height:auto;overflow:visible}
 .line8020 .gl{stroke:var(--rule);stroke-width:1}
+.line8020 .drop{stroke:var(--acc);stroke-width:1.4;stroke-dasharray:3 4;opacity:.7}
 .line8020 .half{stroke:var(--sage-d);stroke-dasharray:4 4;stroke-width:1.2}
 .line8020 .ax{font:500 12px var(--sans);fill:var(--ink2)}
 .line8020 .ln{fill:none;stroke:var(--acc);stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:0}
@@ -569,7 +570,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
   .cmp .tagd{display:none} .cmp img{width:92%}
   .oldest div{grid-template-columns:104px minmax(0,1fr) 52px}
   .oldest .line20{left:calc(112px + (100% - 172px)*.8)}
-  .line8020 .ax{font-size:22px} .line8020 .v{font-size:25px} .line8020 .v.hl{font-size:28px} .line8020 .ln{stroke-width:6}
+  .line8020 .ax{font-size:21px} .line8020 .v{font-size:23px} .line8020 .v.hl{font-size:25px} .line8020 .ln{stroke-width:6}
   .plate5 .gl{font-size:15px}
   .lens::after{border-width:4px}
 }
@@ -957,16 +958,17 @@ function Z(zh,inline){ return '<span class="'+(inline?'zi':'zh')+'"'+(zhOn()?'':
 function init8020(){
   var el=document.getElementById('line8020'); if(!el) return;
   var P=[[1989,7,'about 7%'],[2011,40.2,'40.2%'],[2016,51.2,'51.2%'],[2024,61.5,'61.5%']];
-  var W=640,H=270,L=44,R=24,T=20,B=44, X=function(y){ return L+(y-1989)/(2024-1989)*(W-L-R); }, Y=function(v){ return T+(1-v/100)*(H-T-B); };
+  var W=640,H=290,L=44,R=24,T=20,B=70, X=function(y){ return L+(y-1989)/(2024-1989)*(W-L-R); }, Y=function(v){ return T+(1-v/100)*(H-T-B); };
   var d=P.map(function(p,i){ return (i?'L':'M')+X(p[0]).toFixed(1)+' '+Y(p[1]).toFixed(1); }).join(' ');
   var g='';
   [0,25,50,75,100].forEach(function(v){ g+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+Y(v)+'" y2="'+Y(v)+'" class="gl"/><text x="'+(L-8)+'" y="'+(Y(v)+4)+'" class="ax" text-anchor="end">'+v+'%</text>'; });
   g+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+Y(50)+'" y2="'+Y(50)+'" class="half"/><text x="'+(L+6)+'" y="'+(Y(50)-6)+'" class="ax">half</text>';
   var last=P.length-1, pts=P.map(function(p,i){
-    /* each label sits off the line beside its own dot: 1989 above, 2011 below and to the right (clear of the dashed half line), 2016 up and to the left, 2024 ending at the dot */
-    var ta=i<=1?'start':'end', dx=i===1?10:i===0||i===last?0:-10, dy=i===0?-26:i===1?28:i===last?-14:-16;
-    return '<g class="pt" style="--k:'+i+'"><circle cx="'+X(p[0])+'" cy="'+Y(p[1])+'" r="'+(i===last?7:5)+'" class="'+(i===last?'hl':'')+'"/><text x="'+(X(p[0])+dx)+'" y="'+(Y(p[1])+dy)+'" class="v'+(i===last?' hl':'')+'" text-anchor="'+ta+'">'+p[2]+'</text>'+
-      '<text x="'+X(p[0])+'" y="'+(H-12)+'" class="ax" text-anchor="'+(i===0?'start':i===last?'end':'middle')+'">'+p[0]+'</text></g>'; }).join('');
+    /* each value sits under its own year at the foot of the chart, joined to its dot by a dashed drop line,
+       so no label floats between two dots */
+    var x=X(p[0]), ta=i===0?'start':i===last?'end':'middle', hl=i===last?' hl':'';
+    return '<g class="pt" style="--k:'+i+'"><line class="drop" x1="'+x+'" x2="'+x+'" y1="'+Y(p[1])+'" y2="'+Y(0)+'"/><circle cx="'+x+'" cy="'+Y(p[1])+'" r="'+(i===last?7:5)+'" class="'+hl.trim()+'"/>'+
+      '<text x="'+x+'" y="'+(H-36)+'" class="v'+hl+'" text-anchor="'+ta+'">'+p[2]+'</text><text x="'+x+'" y="'+(H-12)+'" class="ax" text-anchor="'+ta+'">'+p[0]+'</text></g>'; }).join('');
   el.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" aria-hidden="true">'+g+'<path class="ln" pathLength="1" d="'+d+'"/>'+pts+'</svg>';
 }
 var TOOTH='<svg viewBox="0 0 20 26" aria-hidden="true"><path d="M3 3 C6 0 8 2 10 2 C12 2 14 0 17 3 C19 6 18 10 17 13 C16 17 16 23 14 24 C12 25 12 18 10 18 C8 18 8 25 6 24 C4 23 4 17 3 13 C2 10 1 6 3 3 Z"/></svg>';
